@@ -6,15 +6,11 @@
   outputs =
     { nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-      {
-        devShells.default = pkgs.mkShellNoCC {
+      system: with nixpkgs.legacyPackages.${system}; {
+        devShells = mkShell {
           packages = [
-            pkgs.llvmPackages_19.clang-tools
-            (pkgs.llvmPackages_19.libcxxClang.overrideAttrs (oldAttrs: {
+            llvmPackages_19.clang-tools
+            (llvmPackages_19.libcxxClang.overrideAttrs (oldAttrs: {
               postFixup =
                 oldAttrs.postFixup
                 + ''
@@ -22,12 +18,36 @@
                   ln -sf  ${oldAttrs.passthru.libcxx}/share $out
                 '';
             }))
-            (pkgs.cmake.overrideAttrs (oldAttrs: {
+            (cmake.overrideAttrs (oldAttrs: {
               version = "3.30.2";
               src = oldAttrs.src.overrideAttrs { outputHash = null; };
             }))
-            pkgs.ninja
+            ninja
           ];
+        };
+        defaultPackage = stdenv.mkDerivation {
+          name = "import_std_example";
+          src = ./.;
+          nativeBuildInputs = [
+            llvmPackages_19.clang-tools
+            (llvmPackages_19.libcxxClang.overrideAttrs (oldAttrs: {
+              postFixup =
+                oldAttrs.postFixup
+                + ''
+                  ln -sf  ${oldAttrs.passthru.libcxx}/lib/libc++.modules.json $out/resource-root/libc++.modules.json
+                  ln -sf  ${oldAttrs.passthru.libcxx}/share $out
+                '';
+            }))
+            (cmake.overrideAttrs (oldAttrs: {
+              version = "3.30.2";
+              src = oldAttrs.src.overrideAttrs { outputHash = null; };
+            }))
+            ninja
+          ];
+          installPhase = ''
+            mkdir -p $out/bin
+            cp main $out/bin
+          '';
         };
       }
     );
