@@ -27,7 +27,7 @@
             ninja
           ];
         };
-        defaultPackage = stdenv.mkDerivation {
+        packages.default = stdenv.mkDerivation {
           name = "import_std_example";
           src = ./.;
           nativeBuildInputs = [
