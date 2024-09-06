@@ -20,7 +20,9 @@
             }))
             (cmake.overrideAttrs (oldAttrs: {
               version = "3.30.2";
-              src = oldAttrs.src.overrideAttrs { outputHash = null; };
+              src = oldAttrs.src.overrideAttrs {
+                outputHash = "sha256-RgdMeB7M68Qz6Y8Lv6Jlyj/UOB8kXKOxQOdxFTHWDbI=";
+              };
             }))
             ninja
           ];
@@ -40,7 +42,9 @@
             }))
             (cmake.overrideAttrs (oldAttrs: {
               version = "3.30.2";
-              src = oldAttrs.src.overrideAttrs { outputHash = null; };
+              src = oldAttrs.src.overrideAttrs {
+                outputHash = "sha256-RgdMeB7M68Qz6Y8Lv6Jlyj/UOB8kXKOxQOdxFTHWDbI=";
+              };
             }))
             ninja
           ];
