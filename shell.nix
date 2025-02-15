@@ -1,23 +1,15 @@
-with import <nixpkgs> {
-  overlays = [
-    (final: prev: {
-      llvmPackages_19 = prev.llvmPackages_19 // {
-        clang-tools = prev.llvmPackages_19.clang-tools.override { enableLibcxx = true; };
-      };
-    })
-  ];
-};
+with import <nixpkgs> { };
 
-pkgs.mkShell {
-  nativeBuildInputs = with buildPackages; [
-    llvmPackages_19.clang-tools
-    llvmPackages_19.libcxxClang
+mkShell.override { stdenv = llvmPackages.libcxxStdenv; } {
+  packages = [
+    (llvmPackages.clang-tools.override { enableLibcxx = true; })
+    llvmPackages.libcxxClang
     cmake
     ninja
   ];
+  # Fails to build with -D_FORTIFY_SOURCE.
+  hardeningDisable = [ "fortify" ];
   shellHook = ''
-    export CC=${llvmPackages_19.libcxxClang}/bin/clang
-    export CXX="${llvmPackages_19.libcxxClang}/bin/clang++ -stdlib=libc++"
-    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${llvmPackages_19.libcxxClang.libcxx}/lib";
+    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${llvmPackages.libcxxClang.libcxx}/lib";
   '';
 }

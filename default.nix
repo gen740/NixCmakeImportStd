@@ -1,30 +1,17 @@
-with import <nixpkgs> {
-  overlays = [
-    (final: prev: {
-      llvmPackages_19 = prev.llvmPackages_19 // {
-        clang-tools = prev.llvmPackages_19.clang-tools.override { enableLibcxx = true; };
-      };
-    })
-  ];
-};
-
-stdenv.mkDerivation {
+with import <nixpkgs> { };
+llvmPackages.libcxxStdenv.mkDerivation {
   name = "import_std_example";
   src = ./.;
   nativeBuildInputs = [
-    llvmPackages_19.clang-tools
-    llvmPackages_19.libcxxClang
+    (llvmPackages.clang-tools.override { enableLibcxx = true; })
+    llvmPackages.libcxxClang
     cmake
     ninja
   ];
+  # Fails to build with -D_FORTIFY_SOURCE.
+  hardeningDisable = [ "fortify" ];
   preConfigure = ''
-    # Fails to build with -D_FORTIFY_SOURCE.
-    NIX_HARDENING_ENABLE=''${NIX_HARDENING_ENABLE/fortify/}
-    NIX_HARDENING_ENABLE=''${NIX_HARDENING_ENABLE/fortify3/}
-
-    export CC=${llvmPackages_19.libcxxClang}/bin/clang
-    export CXX=${llvmPackages_19.libcxxClang}/bin/clang++
-    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${llvmPackages_19.libcxxClang.libcxx}/lib";
+    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${llvmPackages.libcxxClang.libcxx}/lib";
   '';
   installPhase = ''
     mkdir -p $out/bin
