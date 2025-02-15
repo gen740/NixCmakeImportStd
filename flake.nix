@@ -15,6 +15,8 @@
             ninja
           ];
           shellHook = ''
+            export CC=${llvmPackages_19.libcxxClang}/bin/clang
+            export CXX=${llvmPackages_19.libcxxClang}/bin/clang++
             export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${llvmPackages_19.libcxxClang.libcxx}/lib";
           '';
         };
@@ -28,6 +30,8 @@
             ninja
           ];
           preConfigure = ''
+            export CC=${llvmPackages_19.libcxxClang}/bin/clang
+            export CXX=${llvmPackages_19.libcxxClang}/bin/clang++
             export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${llvmPackages_19.libcxxClang.libcxx}/lib";
           '';
           installPhase = ''
