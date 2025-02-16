@@ -1,5 +1,7 @@
-with import <nixpkgs> { };
-
+{
+  pkgs ? import <nixpkgs> { },
+}:
+with pkgs;
 mkShell.override { stdenv = llvmPackages.libcxxStdenv; } {
   packages = [
     (llvmPackages.clang-tools.override { enableLibcxx = true; })

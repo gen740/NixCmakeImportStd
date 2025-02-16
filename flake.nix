@@ -1,13 +1,24 @@
 {
-  description = "Flake shell";
+  description = "Use cmake, ninja, and clang to import std";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-  inputs.flake-utils.url = "github:numtide/flake-utils";
 
   outputs =
-    { nixpkgs, flake-utils, ... }:
-
-    flake-utils.lib.eachDefaultSystem (
-      system: with nixpkgs.legacyPackages.${system}; {
+    { nixpkgs, ... }:
+    let
+      forSystems =
+        attrs: systems:
+        builtins.foldl' (
+          result: system:
+          nixpkgs.lib.attrsets.recursiveUpdate result (
+            builtins.mapAttrs (_: v: { ${system} = v; }) (attrs system)
+          )
+        ) { } systems;
+    in
+    forSystems (
+      system:
+      with import nixpkgs {
+        system = system;
+      }; rec {
         devShells.default = mkShell.override { stdenv = llvmPackages.libcxxStdenv; } {
           packages = [
             (llvmPackages.clang-tools.override { enableLibcxx = true; })
@@ -24,13 +35,7 @@
         packages.default = llvmPackages.libcxxStdenv.mkDerivation {
           name = "import_std_example";
           src = ./.;
-          nativeBuildInputs = [
-            (llvmPackages.clang-tools.override { enableLibcxx = true; })
-            llvmPackages.libcxxClang
-            cmake
-            ninja
-          ];
-          # Fails to build with -D_FORTIFY_SOURCE.
+          nativeBuildInputs = devShells.default.packages;
           hardeningDisable = [ "fortify" ];
           preConfigure = ''
             export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${llvmPackages.libcxxClang.libcxx}/lib";
@@ -41,5 +46,5 @@
           '';
         };
       }
-    );
+    ) nixpkgs.lib.platforms.all;
 }
