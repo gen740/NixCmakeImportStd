@@ -35,7 +35,12 @@
         packages.default = llvmPackages.libcxxStdenv.mkDerivation {
           name = "import_std_example";
           src = ./.;
-          nativeBuildInputs = devShells.default.packages;
+          nativeBuildInputs = [
+            (llvmPackages.clang-tools.override { enableLibcxx = true; })
+            llvmPackages.libcxxClang
+            cmake
+            ninja
+          ];
           hardeningDisable = [ "fortify" ];
           preConfigure = ''
             export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${llvmPackages.libcxxClang.libcxx}/lib";
